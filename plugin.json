@@ -1,0 +1,54 @@
+{
+  "id": "milsymb",
+  "name": "Military Symbols Library",
+  "version": "0.2.0",
+  "description": "APP-6D (MIL-STD-2525D) SIDC tagging and schematic affiliation styling for vector layers.",
+  "author": "Michael Lanini",
+  "homepage": "https://www.intelligeo.ch/",
+  "license": "MIT",
+  "entry": "plugin.wasm",
+  "abi": 1,
+  "minRustgisVersion": "0.3.0",
+  "permissions": ["edit"],
+  "commands": [
+    {
+      "id": "about",
+      "label": "MilSymbols\nAbout",
+      "help": "Show the plugin scope and the APP-6D tagging workflow.",
+      "icon": "info",
+      "params": "{}"
+    },
+    {
+      "id": "style-app6",
+      "label": "Style by\nAffiliation",
+      "help": "Apply APP-6D affiliation colours (Unique Values) to the active or named layer. Tag it first.",
+      "icon": "buffer",
+      "params": "{\"input\"?: layer name (default: the active layer)}"
+    }
+  ],
+  "tools": [
+    {
+      "id": "tag-layer",
+      "name": "Tag Layer With APP-6D SIDC",
+      "summary": "Copies a vector layer and enriches APP-6D (MIL-STD-2525D) SIDC semantics: version, context, affiliation, symbol set, status and amplifiers.",
+      "toolbox": "MilGeo Tactical",
+      "params": [
+        { "name": "input", "label": "Input layer", "kind": "vectorLayer", "required": true },
+        { "name": "sidc", "label": "Default SIDC (20 digits)", "kind": "text", "required": false, "default": "" },
+        { "name": "sidcField", "label": "SIDC field name", "kind": "text", "required": false, "default": "sidc" },
+        { "name": "label", "label": "Override label", "kind": "text", "required": false, "default": "" },
+        { "name": "labelField", "label": "Label field name", "kind": "text", "required": false, "default": "symbol_label" },
+        { "name": "overrideExisting", "label": "Override existing APP-6 fields", "kind": "bool", "required": false, "default": true }
+      ]
+    }
+  ],
+  "i18n": {
+    "it": {
+      "MilSymbols\nAbout": "MilSymbols\nInfo",
+      "Style by\nAffiliation": "Stile per\nAffiliazione",
+      "Tag Layer With APP-6D SIDC": "Tagga layer con SIDC APP-6D",
+      "Input layer": "Layer di input",
+      "MilGeo Tactical": "MilGeo Tattico"
+    }
+  }
+}

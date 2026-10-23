@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust (stable + wasm32 target)
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+          rustup target add wasm32-unknown-unknown
+
+      - name: Unit tests (host target)
+        run: cargo test
+
+      - name: Build WebAssembly module
+        run: cargo build --release --target wasm32-unknown-unknown
+
+      - name: Assemble plugin folder and package
+        run: |
+          VERSION=$(python3 -c "import json;print(json.load(open('plugin.json'))['version'])")
+          mkdir -p dist/milsymb
+          cp plugin.json dist/milsymb/plugin.json
+          cp target/wasm32-unknown-unknown/release/milsymb.wasm dist/milsymb/plugin.wasm
+          (cd dist/milsymb && zip -X "../milsymb-${VERSION}.rgplugin" plugin.json plugin.wasm)
+          echo "Built milsymb-${VERSION}.rgplugin"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: milsymb-plugin
+          path: |
+            dist/milsymb/plugin.json
+            dist/milsymb/plugin.wasm
+            dist/*.rgplugin

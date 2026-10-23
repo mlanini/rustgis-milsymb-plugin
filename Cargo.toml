@@ -1,0 +1,18 @@
+[package]
+name = "milsymb"
+version = "0.2.0"
+edition = "2021"
+license = "MIT"
+description = "APP-6D (MIL-STD-2525D) SIDC tagging and schematic affiliation styling for RustGIS vector layers."
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+rustgis-plugin = { git = "https://github.com/opengeos/rustgis-plugins" }
+
+[profile.release]
+opt-level = "s"
+lto = true
+panic = "abort"
+strip = true
