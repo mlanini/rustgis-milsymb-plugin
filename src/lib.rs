@@ -712,7 +712,8 @@ mod tests {
         assert!(is_valid_app6d(&sidc));
         assert_eq!(&sidc[3..4], "3");
         assert_eq!(&sidc[4..6], "10");
-        assert_eq!(&sidc[6..7], "2");
+        assert_eq!(&sidc[6..7], "0");
+        assert_eq!(&sidc[7..8], "2");
         assert_eq!(entity_code_for_family(0), "100100");
         assert_eq!(qualifier_code_for_modifier(1), "2");
     }
