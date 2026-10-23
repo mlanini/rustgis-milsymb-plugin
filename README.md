@@ -21,6 +21,32 @@ and colour — it has **no image/SVG point symbols**. True milsymbol icons there
 drawn on the map by any plugin. This plugin delivers a *schematic* APP-6 look (affiliation
 colour) plus full SIDC semantics in the data.
 
+## Current impasse (23 October 2026)
+
+The project is currently blocked against the originally requested outcome.
+
+- Confirmed requirement: real APP-6D/milsymbol icons placed directly on map layers (desktop,
+  CLI, web), with plugin-only scope (no RustGIS core changes).
+- Verified platform limit: RustGIS vector point symbology currently exposes only marker shape
+  (`circle|square|triangle|diamond|star`) and colour. There is no plugin API for per-feature
+  SVG/image point symbols.
+- Practical consequence: a plugin can parse/store SIDC and apply affiliation styling, but cannot
+  render true APP-6D symbol frames/icons as map markers.
+
+### What this means for this repository
+
+- The implemented path remains useful for SIDC attribution and APP-6 affiliation colour styling.
+- Full visual parity with KADAS-style milsymbol rendering is not achievable in the current
+  RustGIS plugin API surface.
+
+### Unblock options
+
+1. Extend RustGIS core/map symbology to support SVG/image point markers (or equivalent sprite
+   pipeline) for vector layers.
+2. Accept the current schematic mode (affiliation colour + basic marker shapes) as the final
+   scope.
+3. Move full-fidelity military symbol rendering to another platform that already supports it.
+
 ## Build (CI, no local Rust needed)
 
 This workspace has no Rust toolchain. Push to GitHub and the `CI` workflow builds the WASM
