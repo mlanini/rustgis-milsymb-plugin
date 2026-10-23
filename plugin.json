@@ -43,12 +43,53 @@
     }
   ],
   "i18n": {
-    "it": {
+    "en_US": {
+      "MilSymbols\nAbout": "MilSymbols\nAbout",
+      "Style by\nAffiliation": "Style by\nAffiliation",
+      "Tag Layer With APP-6D SIDC": "Tag Layer With APP-6D SIDC",
+      "Input layer": "Input layer",
+      "Default SIDC (20 digits)": "Default SIDC (20 digits)",
+      "SIDC field name": "SIDC field name",
+      "Override label": "Override label",
+      "Label field name": "Label field name",
+      "Override existing APP-6 fields": "Override existing APP-6 fields",
+      "MilGeo Tactical": "MilGeo Tactical"
+    },
+    "fr_FR": {
+      "MilSymbols\nAbout": "MilSymbols\nÀ propos",
+      "Style by\nAffiliation": "Style par\nAffiliation",
+      "Tag Layer With APP-6D SIDC": "Étiqueter la couche avec SIDC APP-6D",
+      "Input layer": "Couche source",
+      "Default SIDC (20 digits)": "SIDC par défaut (20 chiffres)",
+      "SIDC field name": "Nom du champ SIDC",
+      "Override label": "Remplacer le libellé",
+      "Label field name": "Nom du champ de libellé",
+      "Override existing APP-6 fields": "Remplacer les champs APP-6 existants",
+      "MilGeo Tactical": "MilGeo Tactique"
+    },
+    "it_IT": {
       "MilSymbols\nAbout": "MilSymbols\nInfo",
       "Style by\nAffiliation": "Stile per\nAffiliazione",
       "Tag Layer With APP-6D SIDC": "Tagga layer con SIDC APP-6D",
       "Input layer": "Layer di input",
+      "Default SIDC (20 digits)": "SIDC predefinita (20 cifre)",
+      "SIDC field name": "Nome campo SIDC",
+      "Override label": "Sovrascrivi etichetta",
+      "Label field name": "Nome campo etichetta",
+      "Override existing APP-6 fields": "Sovrascrivi campi APP-6 esistenti",
       "MilGeo Tactical": "MilGeo Tattico"
+    },
+    "de_CH": {
+      "MilSymbols\nAbout": "MilSymbols\nInfo",
+      "Style by\nAffiliation": "Stil nach\nAffiliation",
+      "Tag Layer With APP-6D SIDC": "Layer mit APP-6D-SIDC kennzeichnen",
+      "Input layer": "Eingabelayer",
+      "Default SIDC (20 digits)": "Standard-SIDC (20 Stellen)",
+      "SIDC field name": "Feldname SIDC",
+      "Override label": "Beschriftung überschreiben",
+      "Label field name": "Feldname Beschriftung",
+      "Override existing APP-6 fields": "Vorhandene APP-6-Felder überschreiben",
+      "MilGeo Tactical": "MilGeo Taktisch"
     }
   }
 }
