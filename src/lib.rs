@@ -30,6 +30,11 @@ const AFFILIATION_COLORS: &[(&str, &str)] = &[
 fn handle(req: Request) -> Result<Value, String> {
     match (req.kind, req.id.as_str()) {
         (Kind::Command, "about") => about(&req),
+        (Kind::Command, "catalog") => catalog(&req),
+        (Kind::Command, "symbol-editor") => symbol_editor(&req),
+        (Kind::Command, "modifier-editor") => modifier_editor(&req),
+        (Kind::Command, "settings") => settings(&req),
+        (Kind::Command, "symbol-editor-state") => symbol_editor_state(&req),
         (Kind::Command, "style-app6") => style_app6(&req),
         (Kind::Tool, "tag-layer") => tag_layer(&req),
         (_, other) => Err(format!("Military Symbols Library has no '{other}'")),
@@ -40,6 +45,93 @@ rustgis_plugin::export!(handle);
 
 // --- Commands -------------------------------------------------------------------------------
 
+const APP6_CATALOG: &[(&str, &str)] = &[
+    ("Land Unit", "Land, air, sea and civil units; main tactical symbol family."),
+    ("Land Equipment", "Fixed and mobile equipment, installations and support assets."),
+    ("Installations", "Command, logistics, engineering and infrastructure sites."),
+    ("Control Measures", "Boundaries, fire support, barriers, alerts and planning graphics."),
+    ("Sea Surface", "Naval surface units, platforms and tactical formations."),
+    ("Air", "Air platforms and mission-related airborne symbols."),
+    ("Space", "Space systems and satellites."),
+    ("Activity", "Operational activities, events and exercises."),
+];
+
+const APP6_CONTEXT_LABELS: &[&str] = &["Reality", "Exercise", "Simulation"];
+const APP6_MODIFIER_LABELS: &[&str] = &["None", "HQ", "TF", "Dummy"];
+const APP6_SYMBOL_SET_TABLE: &[(&str, &str, &str)] = &[
+    ("10", "Land Unit", "Land unit categories and formations"),
+    ("15", "Land Equipment", "Equipment, vehicles and fixed assets"),
+    ("20", "Installations", "Command, support and civil infrastructure"),
+    ("25", "Control Measures", "Boundaries, fire support and plans"),
+    ("30", "Sea Surface", "Naval surface platforms and units"),
+    ("01", "Air", "Air platforms and airborne activity"),
+    ("05", "Space", "Space systems and satellites"),
+    ("40", "Activity", "Operations, activities and events"),
+];
+const APP6_ENTITY_TABLE: &[(&str, &str)] = &[
+    ("10", "100100"),
+    ("15", "170000"),
+    ("20", "220000"),
+    ("25", "250000"),
+    ("30", "300000"),
+    ("01", "011000"),
+    ("05", "050000"),
+    ("40", "400000"),
+];
+const APP6_QUALIFIER_TABLE: &[(&str, &str, &str)] = &[
+    ("0", "None", "No qualifier"),
+    ("1", "Feint/Dummy", "Feint or dummy indicator"),
+    ("2", "Headquarters", "HQ / command node"),
+    ("4", "Task Force", "Task force indicator"),
+    ("6", "Task Force HQ", "Task force headquarters"),
+];
+
+fn symbol_set_code_for_family(family_index: usize) -> &'static str {
+    APP6_SYMBOL_SET_TABLE
+        .get(family_index.min(APP6_SYMBOL_SET_TABLE.len() - 1))
+        .map(|(code, _, _)| *code)
+        .unwrap_or("10")
+}
+
+fn entity_code_for_family(family_index: usize) -> &'static str {
+    APP6_ENTITY_TABLE
+        .get(family_index.min(APP6_ENTITY_TABLE.len() - 1))
+        .map(|(_, code)| *code)
+        .unwrap_or("100100")
+}
+
+fn qualifier_code_for_modifier(modifier_index: usize) -> &'static str {
+    match modifier_index {
+        0 => "0",
+        1 => "2",
+        2 => "4",
+        3 => "1",
+        _ => "0",
+    }
+}
+
+fn build_sidc_from_values(family_index: usize, affiliation_index: usize, status_index: usize, modifier_index: usize, context_index: usize, amplifier_index: usize) -> String {
+    let version = "10";
+    let context = format!("{}", (context_index).min(APP6_CONTEXT_LABELS.len() - 1));
+    let affiliation = format!("{}", (affiliation_index).min(6));
+    let symbol_set = symbol_set_code_for_family(family_index);
+    let status = format!("{}", (status_index).min(5));
+    let qualifier = qualifier_code_for_modifier(modifier_index);
+    let amplifier = format!("{:02}", (amplifier_index).min(99));
+    let entity = entity_code_for_family(family_index);
+    let modifier1 = format!("{:02}", ((status_index + 1) * (affiliation_index + 1)) % 100);
+    let modifier2 = format!("{:02}", ((modifier_index + 1) * (family_index + 1)) % 100);
+    format!("{version}{context}{affiliation}{symbol_set}{status}{qualifier}{amplifier}{entity}{modifier1}{modifier2}")
+}
+
+fn panel_values(req: &Request) -> Map<String, Value> {
+    req.params
+        .get("panel")
+        .and_then(Value::as_object)
+        .cloned()
+        .unwrap_or_default()
+}
+
 fn about(req: &Request) -> Result<Value, String> {
     host::notify(&req.tr(
         MANIFEST,
@@ -47,6 +139,297 @@ fn about(req: &Request) -> Result<Value, String> {
         &[],
     ));
     Ok(json!({"plugin": "milsymb", "standard": "APP-6D", "status": "ready"}))
+}
+
+fn symbol_editor_state(req: &Request) -> Result<Value, String> {
+    let panel = panel_values(req);
+    let family_index = panel
+        .get("catalog-family")
+        .and_then(Value::as_i64)
+        .unwrap_or(0) as usize;
+    let affiliation_index = panel
+        .get("affiliation")
+        .and_then(Value::as_i64)
+        .unwrap_or(3) as usize;
+    let status_index = panel
+        .get("status")
+        .and_then(Value::as_i64)
+        .unwrap_or(0) as usize;
+    let modifier_index = panel
+        .get("modifier")
+        .and_then(Value::as_i64)
+        .unwrap_or(0) as usize;
+    let context_index = panel
+        .get("context")
+        .and_then(Value::as_i64)
+        .unwrap_or(0) as usize;
+    let amplifier_index = panel
+        .get("amplifier")
+        .and_then(Value::as_i64)
+        .unwrap_or(0) as usize;
+    let strict_validation = panel
+        .get("strict-validation")
+        .and_then(Value::as_bool)
+        .unwrap_or(true);
+
+    let family = APP6_CATALOG.get(family_index).map(|(name, _)| *name).unwrap_or("Land Unit");
+    let affiliation = ["Pending", "Unknown", "Assumed Friend", "Friend", "Neutral", "Suspect", "Hostile"][affiliation_index.min(6)];
+    let status = ["Present", "Planned", "Fully Capable", "Damaged", "Destroyed", "Full To Capacity"][status_index.min(5)];
+    let modifier = APP6_MODIFIER_LABELS[modifier_index.min(APP6_MODIFIER_LABELS.len() - 1)];
+    let sidc = build_sidc_from_values(family_index, affiliation_index, status_index, modifier_index, context_index, amplifier_index);
+
+    Ok(json!({
+        "panel": {
+            "values": {
+                "catalog-family": family_index,
+                "context": context_index,
+                "affiliation": affiliation_index,
+                "status": status_index,
+                "modifier": modifier_index,
+                "amplifier": amplifier_index,
+                "strict-validation": strict_validation
+            },
+            "items": {
+                "catalog-family": {"min": 0, "max": APP6_CATALOG.len() as i64 - 1, "labels": APP6_CATALOG.iter().map(|(name, _)| *name).collect::<Vec<_>>()},
+                "context": {"min": 0, "max": 2, "labels": APP6_CONTEXT_LABELS},
+                "affiliation": {"min": 0, "max": 6, "labels": ["Pending", "Unknown", "Assumed Friend", "Friend", "Neutral", "Suspect", "Hostile"]},
+                "status": {"min": 0, "max": 5, "labels": ["Present", "Planned", "Fully Capable", "Damaged", "Destroyed", "Full To Capacity"]},
+                "modifier": {"min": 0, "max": 3, "labels": APP6_MODIFIER_LABELS},
+                "amplifier": {"min": 0, "max": 99, "labels": ["00", "01", "02", "03", "04", "05", "06", "07", "08", "09"]}
+            },
+            "text": {
+                "catalog-section": format!("Selected family: {}", family),
+                "editor-section": format!("Selected context: {} / affiliation: {} / status: {} / modifier: {}", APP6_CONTEXT_LABELS[context_index.min(APP6_CONTEXT_LABELS.len() - 1)], affiliation, status, modifier),
+                "sidc-preview": format!("Generated SIDC: {}", sidc)
+            }
+        },
+        "selectedFamily": family,
+        "selectedSymbolSetCode": symbol_set_code_for_family(family_index),
+        "selectedEntityCode": entity_code_for_family(family_index),
+        "qualifierCode": qualifier_code_for_modifier(modifier_index),
+        "context": APP6_CONTEXT_LABELS[context_index.min(APP6_CONTEXT_LABELS.len() - 1)],
+        "affiliation": affiliation,
+        "status": status,
+        "modifier": modifier,
+        "sidc": sidc,
+        "symbolSetTable": APP6_SYMBOL_SET_TABLE,
+        "entityTable": APP6_ENTITY_TABLE,
+        "qualifierTable": APP6_QUALIFIER_TABLE,
+        "strictValidation": strict_validation
+    }))
+}
+
+fn catalog(req: &Request) -> Result<Value, String> {
+    let panel = panel_values(req);
+    let family_index = panel
+        .get("catalog-family")
+        .and_then(Value::as_i64)
+        .unwrap_or(0) as usize;
+    let entries: Vec<Value> = APP6_CATALOG
+        .iter()
+        .enumerate()
+        .map(|(index, (family, description))| {
+            json!({
+                "index": index,
+                "family": *family,
+                "description": *description,
+                "selected": index == family_index,
+                "source": "APP-6D",
+                "rendering": "schematic"
+            })
+        })
+        .collect();
+    host::notify(&req.tr(MANIFEST, "APP-6D symbol catalog loaded.", &[]));
+    Ok(json!({
+        "catalog": entries,
+        "selectedFamily": APP6_CATALOG.get(family_index).map(|(name, _)| *name).unwrap_or("Land Unit"),
+        "totalFamilies": entries.len(),
+        "standard": "APP-6D",
+        "renderingMode": "schematic-affiliation",
+        "panel": {
+            "values": { "catalog-family": family_index }
+        }
+    }))
+}
+
+fn symbol_editor(req: &Request) -> Result<Value, String> {
+    let panel = panel_values(req);
+    let family_index = panel
+        .get("catalog-family")
+        .and_then(Value::as_i64)
+        .unwrap_or(0) as usize;
+    let affiliation_index = panel
+        .get("affiliation")
+        .and_then(Value::as_i64)
+        .unwrap_or(3) as usize;
+    let status_index = panel
+        .get("status")
+        .and_then(Value::as_i64)
+        .unwrap_or(0) as usize;
+    let modifier_index = panel
+        .get("modifier")
+        .and_then(Value::as_i64)
+        .unwrap_or(0) as usize;
+    let context_index = panel
+        .get("context")
+        .and_then(Value::as_i64)
+        .unwrap_or(0) as usize;
+    let amplifier_index = panel
+        .get("amplifier")
+        .and_then(Value::as_i64)
+        .unwrap_or(0) as usize;
+    let generated_sidc = build_sidc_from_values(family_index, affiliation_index, status_index, modifier_index, context_index, amplifier_index);
+    let parsed = classify(&generated_sidc).map_err(|e| format!("generated SIDC invalid: {e}"))?;
+    let affiliation = ["Pending", "Unknown", "Assumed Friend", "Friend", "Neutral", "Suspect", "Hostile"][affiliation_index.min(6)];
+    let status = ["Present", "Planned", "Fully Capable", "Damaged", "Destroyed", "Full To Capacity"][status_index.min(5)];
+
+    host::notify(&req.tr(MANIFEST, "APP-6D symbol editor ready: generated SIDC {generated_sidc}", &[("generated_sidc", &generated_sidc)]));
+    Ok(json!({
+        "editor": "symbol-editor",
+        "sampleSidc": generated_sidc,
+        "generatedSidc": generated_sidc,
+        "selectedFamily": APP6_CATALOG.get(family_index).map(|(name, _)| *name).unwrap_or("Land Unit"),
+        "selectedSymbolSetCode": symbol_set_code_for_family(family_index),
+        "selectedEntityCode": entity_code_for_family(family_index),
+        "selectedAffiliation": affiliation,
+        "selectedStatus": status,
+        "selectedModifier": APP6_MODIFIER_LABELS[modifier_index.min(APP6_MODIFIER_LABELS.len() - 1)],
+        "qualifierCode": qualifier_code_for_modifier(modifier_index),
+        "parsed": parsed,
+        "panel": {
+            "values": {
+                "catalog-family": family_index,
+                "context": context_index,
+                "affiliation": affiliation_index,
+                "status": status_index,
+                "modifier": modifier_index,
+                "amplifier": amplifier_index
+            }
+        },
+        "symbolSetTable": APP6_SYMBOL_SET_TABLE,
+        "entityTable": APP6_ENTITY_TABLE,
+        "qualifierTable": APP6_QUALIFIER_TABLE,
+        "fields": [
+            "sidc",
+            "context",
+            "affiliation",
+            "symbol_set",
+            "status",
+            "hqtfd",
+            "amplifier_code",
+            "entity_code",
+            "modifier1_code",
+            "modifier2_code"
+        ]
+    }))
+}
+
+fn modifier_editor(req: &Request) -> Result<Value, String> {
+    let panel = panel_values(req);
+    let family_index = panel
+        .get("catalog-family")
+        .and_then(Value::as_i64)
+        .unwrap_or(0) as usize;
+    let affiliation_index = panel
+        .get("affiliation")
+        .and_then(Value::as_i64)
+        .unwrap_or(3) as usize;
+    let status_index = panel
+        .get("status")
+        .and_then(Value::as_i64)
+        .unwrap_or(0) as usize;
+    let modifier_index = panel
+        .get("modifier")
+        .and_then(Value::as_i64)
+        .unwrap_or(0) as usize;
+    let context_index = panel
+        .get("context")
+        .and_then(Value::as_i64)
+        .unwrap_or(0) as usize;
+    let amplifier_index = panel
+        .get("amplifier")
+        .and_then(Value::as_i64)
+        .unwrap_or(0) as usize;
+    let modifier = APP6_MODIFIER_LABELS[modifier_index.min(APP6_MODIFIER_LABELS.len() - 1)];
+    let sidc = build_sidc_from_values(family_index, affiliation_index, status_index, modifier_index, context_index, amplifier_index);
+    let modifiers = json!([
+        {"code": "0", "label": "None", "description": "No qualifier"},
+        {"code": "2", "label": "HQ", "description": "Headquarters / command indicator"},
+        {"code": "4", "label": "TF", "description": "Task force indicator"},
+        {"code": "1", "label": "Dummy", "description": "Feint / dummy indicator"}
+    ]);
+    host::notify(&req.tr(MANIFEST, "APP-6D modifier editor ready: SIDC {sidc}", &[("sidc", &sidc)]));
+    Ok(json!({
+        "editor": "modifier-editor",
+        "selectedModifier": modifier,
+        "selectedQualifierCode": qualifier_code_for_modifier(modifier_index),
+        "generatedSidc": sidc,
+        "modifiers": modifiers,
+        "qualifierTable": APP6_QUALIFIER_TABLE,
+        "panel": {
+            "values": {
+                "catalog-family": family_index,
+                "context": context_index,
+                "affiliation": affiliation_index,
+                "status": status_index,
+                "modifier": modifier_index,
+                "amplifier": amplifier_index
+            }
+        },
+        "supportedFields": ["hq_tf_dummy", "amplifier_code", "modifier1_code", "modifier2_code"]
+    }))
+}
+
+fn settings(req: &Request) -> Result<Value, String> {
+    let panel = panel_values(req);
+    let family_index = panel
+        .get("catalog-family")
+        .and_then(Value::as_i64)
+        .unwrap_or(0) as usize;
+    let affiliation_index = panel
+        .get("affiliation")
+        .and_then(Value::as_i64)
+        .unwrap_or(3) as usize;
+    let status_index = panel
+        .get("status")
+        .and_then(Value::as_i64)
+        .unwrap_or(0) as usize;
+    let modifier_index = panel
+        .get("modifier")
+        .and_then(Value::as_i64)
+        .unwrap_or(0) as usize;
+    let context_index = panel
+        .get("context")
+        .and_then(Value::as_i64)
+        .unwrap_or(0) as usize;
+    let amplifier_index = panel
+        .get("amplifier")
+        .and_then(Value::as_i64)
+        .unwrap_or(0) as usize;
+    let strict_validation = panel
+        .get("strict-validation")
+        .and_then(Value::as_bool)
+        .unwrap_or(true);
+    let generated_sidc = build_sidc_from_values(family_index, affiliation_index, status_index, modifier_index, context_index, amplifier_index);
+    let defaults = json!({
+        "standard": "APP-6D",
+        "defaultColorMode": "affiliation",
+        "sidcValidation": if strict_validation { "strict-20-digit" } else { "relaxed" },
+        "allowOverrideExistingFields": true,
+        "defaultLabelField": "symbol_label",
+        "defaultSidcField": "sidc",
+        "symbolRenderMode": "schematic-affiliation",
+        "generatedSidc": generated_sidc
+    });
+    host::notify(&req.tr(MANIFEST, "APP-6D settings loaded with SIDC {generated_sidc}.", &[("generated_sidc", &generated_sidc)]));
+    Ok(json!({
+        "settings": defaults,
+        "generatedSidc": generated_sidc,
+        "strictValidation": strict_validation,
+        "plugin": "milsymb",
+        "version": "0.2.0",
+        "panel": { "values": { "context": context_index, "affiliation": affiliation_index, "status": status_index, "modifier": modifier_index, "amplifier": amplifier_index, "strict-validation": strict_validation } }
+    }))
 }
 
 fn style_app6(req: &Request) -> Result<Value, String> {
@@ -320,6 +703,18 @@ mod tests {
         assert_eq!(v["affiliation"], "Friend");
         assert_eq!(v["symbol_set"], "Land Unit");
         assert_eq!(v["status"], "Present");
+    }
+
+    #[test]
+    fn builds_a_complete_sidc_from_editor_state() {
+        let sidc = build_sidc_from_values(0, 3, 0, 1, 0, 0);
+        assert_eq!(sidc.len(), 20);
+        assert!(is_valid_app6d(&sidc));
+        assert_eq!(&sidc[3..4], "3");
+        assert_eq!(&sidc[4..6], "10");
+        assert_eq!(&sidc[6..7], "2");
+        assert_eq!(entity_code_for_family(0), "100100");
+        assert_eq!(qualifier_code_for_modifier(1), "2");
     }
 
     #[test]

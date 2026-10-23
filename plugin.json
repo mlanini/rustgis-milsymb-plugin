@@ -19,6 +19,41 @@
       "params": "{}"
     },
     {
+      "id": "catalog",
+      "label": "Symbol\nCatalog",
+      "help": "Browse the APP-6D symbol catalog and inspect the available symbol families.",
+      "icon": "bookmark",
+      "params": "{}"
+    },
+    {
+      "id": "symbol-editor",
+      "label": "Symbol\nEditor",
+      "help": "Open the APP-6D symbol editor for the selected military symbol.",
+      "icon": "buffer",
+      "params": "{}"
+    },
+    {
+      "id": "modifier-editor",
+      "label": "Modifier\nEditor",
+      "help": "Adjust APP-6D modifier fields, qualifiers and tactical annotations.",
+      "icon": "stats",
+      "params": "{}"
+    },
+    {
+      "id": "settings",
+      "label": "Settings",
+      "help": "Adjust APP-6D defaults, rendering and SIDC handling preferences.",
+      "icon": "zoom_full",
+      "params": "{}"
+    },
+    {
+      "id": "symbol-editor-state",
+      "label": "SIDC\nState",
+      "help": "Read the live APP-6D panel state for the SIDC editor and catalog filters.",
+      "icon": "stats",
+      "params": "{}"
+    },
+    {
       "id": "style-app6",
       "label": "Style by\nAffiliation",
       "help": "Apply APP-6D affiliation colours (Unique Values) to the active or named layer. Tag it first.",
@@ -42,10 +77,57 @@
       ]
     }
   ],
+  "tab": {
+    "label": "APP-6D",
+    "groups": [
+      {
+        "label": "APP-6D",
+        "items": [
+          "catalog",
+          "symbol-editor",
+          "modifier-editor",
+          "settings",
+          "about",
+          "style-app6",
+          "tool:tag-layer"
+        ]
+      }
+    ]
+  },
+  "panel": {
+    "title": "APP-6D",
+    "icon": "bookmark",
+    "help": "APP-6D symbol catalog, symbol editing, modifier editing and settings.",
+    "state": "symbol-editor-state",
+    "items": [
+      { "kind": "text", "id": "catalog-section", "label": "Symbol catalog", "text": "Scroll the APP-6D symbol families and choose the one to inspect." },
+      { "kind": "slider", "id": "catalog-family", "label": "Family", "min": 0, "max": 7, "default": 0, "command": "catalog" },
+      { "kind": "slider", "id": "context", "label": "Context", "min": 0, "max": 2, "default": 0, "command": "symbol-editor" },
+      { "kind": "slider", "id": "affiliation", "label": "Affiliation", "min": 0, "max": 6, "default": 3, "command": "symbol-editor" },
+      { "kind": "slider", "id": "status", "label": "Status", "min": 0, "max": 5, "default": 0, "command": "symbol-editor" },
+      { "kind": "slider", "id": "modifier", "label": "Modifier", "min": 0, "max": 3, "default": 0, "command": "modifier-editor" },
+      { "kind": "slider", "id": "amplifier", "label": "Amplifier", "min": 0, "max": 99, "default": 0, "command": "modifier-editor" },
+      { "kind": "text", "id": "sidc-preview", "label": "Generated SIDC", "text": "10031000121103000000" },
+      { "kind": "checkbox", "id": "strict-validation", "label": "Strict SIDC validation", "default": true, "command": "settings" },
+      { "kind": "button", "command": "catalog", "label": "Open catalog" },
+      { "kind": "button", "command": "symbol-editor", "label": "Apply symbol" },
+      { "kind": "button", "command": "modifier-editor", "label": "Apply modifier" },
+      { "kind": "button", "command": "settings", "label": "Apply settings" }
+    ]
+  },
   "i18n": {
     "en_US": {
+      "APP-6D": "APP-6D",
       "MilSymbols\nAbout": "MilSymbols\nAbout",
       "Style by\nAffiliation": "Style by\nAffiliation",
+      "Symbol\nCatalog": "Symbol\nCatalog",
+      "Symbol\nEditor": "Symbol\nEditor",
+      "Modifier\nEditor": "Modifier\nEditor",
+      "Settings": "Settings",
+      "SIDC\nState": "SIDC\nState",
+      "Open catalog": "Open catalog",
+      "Editor": "Editor",
+      "Modifiers": "Modifiers",
       "Tag Layer With APP-6D SIDC": "Tag Layer With APP-6D SIDC",
       "Input layer": "Input layer",
       "Default SIDC (20 digits)": "Default SIDC (20 digits)",
@@ -53,11 +135,23 @@
       "Override label": "Override label",
       "Label field name": "Label field name",
       "Override existing APP-6 fields": "Override existing APP-6 fields",
-      "MilGeo Tactical": "MilGeo Tactical"
+      "MilGeo Tactical": "MilGeo Tactical",
+      "Symbol catalog": "Symbol catalog",
+      "Symbol editor": "Symbol editor",
+      "Modifier editor": "Modifier editor"
     },
     "fr_FR": {
+      "APP-6D": "APP-6D",
       "MilSymbols\nAbout": "MilSymbols\nÀ propos",
       "Style by\nAffiliation": "Style par\nAffiliation",
+      "Symbol\nCatalog": "Catalogue\nSymboles",
+      "Symbol\nEditor": "Éditeur\nSymboles",
+      "Modifier\nEditor": "Éditeur\nModificateurs",
+      "Settings": "Paramètres",
+      "SIDC\nState": "État\nSIDC",
+      "Open catalog": "Ouvrir le catalogue",
+      "Editor": "Éditeur",
+      "Modifiers": "Modificateurs",
       "Tag Layer With APP-6D SIDC": "Étiqueter la couche avec SIDC APP-6D",
       "Input layer": "Couche source",
       "Default SIDC (20 digits)": "SIDC par défaut (20 chiffres)",
@@ -65,11 +159,23 @@
       "Override label": "Remplacer le libellé",
       "Label field name": "Nom du champ de libellé",
       "Override existing APP-6 fields": "Remplacer les champs APP-6 existants",
-      "MilGeo Tactical": "MilGeo Tactique"
+      "MilGeo Tactical": "MilGeo Tactique",
+      "Symbol catalog": "Catalogue de symboles",
+      "Symbol editor": "Éditeur de symboles",
+      "Modifier editor": "Éditeur de modificateurs"
     },
     "it_IT": {
+      "APP-6D": "APP-6D",
       "MilSymbols\nAbout": "MilSymbols\nInfo",
       "Style by\nAffiliation": "Stile per\nAffiliazione",
+      "Symbol\nCatalog": "Catalogo\nSimboli",
+      "Symbol\nEditor": "Editor\nSimboli",
+      "Modifier\nEditor": "Editor\nModificatori",
+      "Settings": "Impostazioni",
+      "SIDC\nState": "Stato\nSIDC",
+      "Open catalog": "Apri catalogo",
+      "Editor": "Editor",
+      "Modifiers": "Modificatori",
       "Tag Layer With APP-6D SIDC": "Tagga layer con SIDC APP-6D",
       "Input layer": "Layer di input",
       "Default SIDC (20 digits)": "SIDC predefinita (20 cifre)",
@@ -77,11 +183,23 @@
       "Override label": "Sovrascrivi etichetta",
       "Label field name": "Nome campo etichetta",
       "Override existing APP-6 fields": "Sovrascrivi campi APP-6 esistenti",
-      "MilGeo Tactical": "MilGeo Tattico"
+      "MilGeo Tactical": "MilGeo Tattico",
+      "Symbol catalog": "Catalogo simboli",
+      "Symbol editor": "Editor simboli",
+      "Modifier editor": "Editor modificatori"
     },
     "de_CH": {
+      "APP-6D": "APP-6D",
       "MilSymbols\nAbout": "MilSymbols\nInfo",
       "Style by\nAffiliation": "Stil nach\nAffiliation",
+      "Symbol\nCatalog": "Symbol-\nKatalog",
+      "Symbol\nEditor": "Symbol-\nEditor",
+      "Modifier\nEditor": "Modifikator-\nEditor",
+      "Settings": "Einstellungen",
+      "SIDC\nState": "SIDC-\nStatus",
+      "Open catalog": "Katalog öffnen",
+      "Editor": "Editor",
+      "Modifiers": "Modifikatoren",
       "Tag Layer With APP-6D SIDC": "Layer mit APP-6D-SIDC kennzeichnen",
       "Input layer": "Eingabelayer",
       "Default SIDC (20 digits)": "Standard-SIDC (20 Stellen)",
@@ -89,7 +207,10 @@
       "Override label": "Beschriftung überschreiben",
       "Label field name": "Feldname Beschriftung",
       "Override existing APP-6 fields": "Vorhandene APP-6-Felder überschreiben",
-      "MilGeo Tactical": "MilGeo Taktisch"
+      "MilGeo Tactical": "MilGeo Taktisch",
+      "Symbol catalog": "Symbolkatalog",
+      "Symbol editor": "Symbol-Editor",
+      "Modifier editor": "Modifikator-Editor"
     }
   }
 }
